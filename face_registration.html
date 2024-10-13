@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Rosto - Reconhecimento Facial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        video {
+            width: 100%; /* Adiciona uma largura de 100% para o vídeo */
+            height: auto; /* Mantém a proporção do vídeo */
+            border-radius: 5px;
+            margin-bottom: 10px; /* Espaçamento abaixo do vídeo */
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer; /* Muda o cursor para indicar que é clicável */
+        }
+        .status {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registrar Rosto</h1>
+        <video id="video" autoplay></video>
+        <button onclick="captureFace()">Capturar Rosto</button>
+        <p class="status" id="capture-status"></p>
+        <button onclick="backToHome()">Voltar</button>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+
+        // Acessar a câmera do usuário
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(error => {
+                console.error('Erro ao acessar a câmera:', error);
+                document.getElementById('capture-status').innerText = 'Erro ao acessar a câmera. Verifique suas permissões.';
+            });
+
+        function captureFace() {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0);
+            const imageData = canvas.toDataURL('image/png');
+
+            fetch('/register_face', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ image: imageData }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('capture-status').innerText = data.message;
+                if (data.success) {
+                    // Opcional: Redirecionar ou exibir mensagem de sucesso
+                    setTimeout(() => {
+                        window.location.href = '/'; // Redirecionar para a tela inicial após 2 segundos
+                    }, 2000);
+                }
+            })
+            .catch((error) => {
+                console.error('Erro:', error);
+                document.getElementById('capture-status').innerText = 'Erro ao capturar o rosto. Tente novamente.';
+            });
+        }
+
+        function backToHome() {
+            window.location.href = '/'; // Rota para voltar à tela inicial
+        }
+    </script>
+</body>
+</html>
