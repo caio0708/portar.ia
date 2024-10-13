@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reconhecimento Facial - Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        input[type="text"],
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .status {
+            color: red; /* Para mensagens de erro */
+        }
+        .status.success {
+            color: green; /* Para mensagens de sucesso */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Home</h1>
+        
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Nome de Usuário" required>
+        <button id="login-button">Entrar</button>
+        <p class="status" id="login-status"></p>
+        
+        <h2>Registrar Usuário</h2>
+        <input type="text" id="new-username" placeholder="Nome de Usuário" required>
+        <button id="register-button">Registrar</button>
+        <p class="status" id="register-status"></p>
+
+        <h2>Verificar Rosto</h2>
+        <button onclick="verifyFace()">Verificar Rosto</button>
+        <p class="status" id="verify-status"></p>
+    </div>
+
+    <script>
+        document.getElementById('login-button').addEventListener('click', login);
+        document.getElementById('register-button').addEventListener('click', registerUser);
+
+        function login() {
+            const username = document.getElementById('username').value;
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('login-status').innerText = data.message;
+                if (data.success) {
+                    window.location.href = 'face_registration.html'; // Redirecionar para a tela de registro de rosto
+                }
+            })
+            .catch((error) => {
+                console.error('Erro:', error);
+                document.getElementById('login-status').innerText = 'Erro ao tentar fazer login. Tente novamente.';
+            });
+        }
+
+        function registerUser() {
+            const username = document.getElementById('new-username').value;
+
+            if (!username.trim()) {
+                document.getElementById('register-status').innerText = 'Por favor, insira um nome de usuário.';
+                return;
+            }
+
+            console.log('Tentando registrar usuário:', username); // Mensagem de depuração
+
+            fetch('/register_user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Dados recebidos:', data); // Mensagem de depuração
+                document.getElementById('register-status').innerText = data.message;
+                document.getElementById('register-status').className = data.success ? 'status success' : 'status error';
+                if (data.success) {
+                    window.location.href = 'face_registration';
+                }
+            })
+            .catch((error) => {
+                console.error('Erro:', error);
+                document.getElementById('register-status').innerText = 'Erro ao tentar registrar. Tente novamente.';
+            });
+        }
+
+        function verifyFace() {
+            window.location.href = 'verification.html'; // Redirecionar para a tela de verificação de rosto
+        }
+    </script>
+    
+</body>
+</html>
